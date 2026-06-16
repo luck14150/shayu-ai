@@ -1,3 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#667eea">
+<title>傻宇1号 - AI智能助手</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 8px;
+}
+.container {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    margin-top: 8px;
+}
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+.header h1 { font-size: 24px; margin-bottom: 5px; }
+.header .subtitle { font-size: 13px; opacity: 0.95; }
+.config {
+    padding: 15px 20px;
+    background: #f8f9ff;
+    border-bottom: 1px solid #e8eaf6;
+}
+.config details { margin-bottom: 5px; }
+.config summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #667eea;
+    font-size: 14px;
+    padding: 5px 0;
+}
+.config label {
+    display: block;
+    margin: 12px 0 5px;
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+.config input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e8eaf6;
+    border-radius: 10px;
+    font-size: 14px;
+    background: white;
+}
+.config input:focus { outline: none; border-color: #667eea; }
+.chat-area {
+    height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #fafbff;
+    -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 520px) {
+    .chat-area { height: calc(100dvh - 320px); min-height: 260px; }
+}
+.message { margin-bottom: 15px; display: flex; animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.message.user { justify-content: flex-end; }
+.bubble {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    line-height: 1.6;
+    font-size: 14px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+.message.user .bubble {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+.message.ai .bubble {
+    background: #f0f4ff;
+    color: #333;
+    border-bottom-left-radius: 5px;
+}
+.message.system .bubble {
+    background: #fff8e1;
+    color: #666;
+    border-radius: 12px;
+    font-size: 12px;
+    font-style: italic;
+}
+.message.typing .bubble { background: #f0f4ff; color: #999; font-style: italic; }
+.dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #999; margin: 0 2px;
+    animation: typing 1.4s infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-8px); opacity: 1; }
+}
+.input-area {
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #e8eaf6;
+    display: flex;
+    gap: 10px;
+}
+.input-area input {
+    flex: 1;
+    padding: 12px 18px;
+    border: 2px solid #e8eaf6;
+    border-radius: 25px;
+    font-size: 14px;
+}
+.input-area input:focus { outline: none; border-color: #667eea; }
+.input-area button {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: transform 0.1s;
+}
+.input-area button:active { transform: scale(0.95); }
+.input-area button:disabled { opacity: 0.5; }
+.chat-area::-webkit-scrollbar { width: 6px; }
+.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar-thumb { background: #c5cae9; border-radius: 3px; }
+.footer {
+    text-align: center;
+    padding: 15px;
+    font-size: 11px;
+    color: #888;
+    background: #f8f9ff;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🤖 傻宇1号</h1>
+        <div class="subtitle">您的智能AI助手</div>
+    </div>
+    <div class="config">
+        <details>
+            <summary>⚙️ API配置（已预配置DeepSeek，可直接使用）</summary>
+            <label>API地址</label>
+            <input type="text" id="apiBase" placeholder="https://api.deepseek.com">
+            <label>API Key</label>
+            <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
+            <label>模型名称</label>
+            <input type="text" id="model" placeholder="deepseek-chat">
+        </details>
+    </div>
+    <div class="chat-area" id="chatArea">
+        <div class="message ai">
+            <div class="bubble">主人您好！我是傻宇1号，很高兴为您服务～😊<br>已为您预配置DeepSeek API，直接输入消息即可开始聊天！</div>
+        </div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="输入消息，回车发送..." autocomplete="off">
+        <button onclick="sendMessage()" id="sendBtn">发送</button>
+    </div>
+    <div class="footer">傻宇1号 v2.0</div>
+</div>
+
+<script>
+let messages = [];
+const chatArea = document.getElementById('chatArea');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const apiBaseEl = document.getElementById('apiBase');
+const apiKeyEl = document.getElementById('apiKey');
+const modelEl = document.getElementById('model');
+
+const DEFAULT_API_KEY = 'sk-5c8cbf625e744e649f99fa2277705af9';
+apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://api.deepseek.com';
+apiKeyEl.value = localStorage.getItem('shayu_apiKey') || DEFAULT_API_KEY;
+modelEl.value = localStorage.getItem('shayu_model') || 'deepseek-chat';
+localStorage.setItem('shayu_apiKey', DEFAULT_API_KEY);
+
+apiBaseEl.addEventListener('change', function() { localStorage.setItem('shayu_apiBase', apiBaseEl.value); });
+apiKeyEl.addEventListener('change', function() { localStorage.setItem('shayu_apiKey', apiKeyEl.value); });
+modelEl.addEventListener('change', function() { localStorage.setItem('shayu_model', modelEl.value); });
+
+userInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+function addMessage(text, role) {
+    const msg = document.createElement('div');
+    msg.className = 'message ' + role;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    msg.appendChild(bubble);
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function addTyping() {
+    const msg = document.createElement('div');
+    msg.className = 'message ai typing';
+    msg.id = 'typing-msg';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+    msg.appendChild(bubble);
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function removeTyping() {
+    const t = document.getElementById('typing-msg');
+    if (t) t.remove();
+}
+
+async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+    addMessage(text, 'user');
+    messages.push({role: 'user', content: text});
+    userInput.value = '';
+    sendBtn.disabled = true;
+    addTyping();
+
+    const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
+    const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
+    const model = modelEl.value || 'deepseek-chat';
+
+    const url = apiBase.replace(/\/$/, '') + '/chat/completions';
+    const payload = {
+        model: model,
+        messages: [{role: 'system', content: '你是傻宇1号，温暖智慧的AI助手，回答简短友好。'}].concat(messages),
+        temperature: 0.7
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        removeTyping();
+
+        if (data.choices && data.choices.length > 0) {
+            const reply = data.choices[0].message.content;
+            addMessage(reply, 'ai');
+            messages.push({role: 'assistant', content: reply});
+        } else if (data.error) {
+            addMessage('主人，API返回错误：' + JSON.stringify(data.error), 'system');
+        } else {
+            addMessage('主人，API返回格式不对，请检查配置', 'system');
+        }
+    } catch (e) {
+        removeTyping();
+        addMessage('主人，出错了：' + e.message, 'system');
+    }
+
+    sendBtn.disabled = false;
+    userInput.focus();
+}
+</script>
+</body>
+</html>
 
 <!DOCTYPE html>
 <html lang="zh-CN">
