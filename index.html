@@ -229,6 +229,31 @@ body {
     background: #f8f9ff;
     flex-shrink: 0;
 }
+/* Token用量显示 */
+.token-bar {
+    padding: 4px 12px;
+    background: linear-gradient(90deg, #f0f4ff 0%, #e8eaf6 100%);
+    border-top: 1px solid #dde2f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #667eea;
+    flex-shrink: 0;
+}
+.token-bar .token-info {
+    display: flex;
+    gap: 12px;
+}
+.token-bar .token-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.token-bar .token-warn {
+    color: #ef4444;
+    font-weight: bold;
+}
 /* 设置面板 */
 .config-panel {
     position: fixed;
@@ -339,7 +364,19 @@ body {
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
     </div>
     
-    <div class="footer-tip">傻宇1号 v4.0 · 全新优化</div>
+    <div class="token-bar" id="tokenBar">
+        <div class="token-info">
+            <div class="token-item">📝 输入: <span id="promptTokens">0</span></div>
+            <div class="token-item">💬 回复: <span id="completionTokens">0</span></div>
+            <div class="token-item">📊 累计: <span id="totalTokens">0</span></div>
+            <div class="token-item">🔄 上下文: <span id="contextCount">0</span>条</div>
+        </div>
+        <div class="token-info" id="tokenWarn" style="display:none;">
+            <span class="token-warn">⚠️ 上下文较长</span>
+        </div>
+    </div>
+    
+    <div class="footer-tip">傻宇1号 v4.1 · 节省token优化</div>
 </div>
 
 <div class="config-panel" id="configPanel">
@@ -364,6 +401,14 @@ body {
             <label>天气城市</label>
             <input type="text" id="weatherCity" placeholder="如：北京">
         </div>
+        <div class="config-item">
+            <label>🔄 上下文消息数 (默认10,节省token)</label>
+            <input type="number" id="contextLimit" placeholder="10" min="2" max="50">
+        </div>
+        <div class="config-item">
+            <label>💬 单次回复token上限 (默认500,越短越省)</label>
+            <input type="number" id="maxTokens" placeholder="500" min="100" max="2000">
+        </div>
         <button class="config-save" onclick="saveConfig()">保存</button>
     </div>
 </div>
@@ -375,6 +420,9 @@ let recognition = null;
 let speechSynthesis = window.speechSynthesis || null;
 let currentUtterance = null;
 let autoSpeak = true;
+let totalTokensUsed = 0;       // 累计token
+let sessionPromptTokens = 0;    // 累计输入token
+let sessionCompletionTokens = 0; // 累计输出token
 
 const chatArea = document.getElementById('chatArea');
 const userInput = document.getElementById('userInput');
@@ -384,6 +432,8 @@ const apiBaseEl = document.getElementById('apiBase');
 const apiKeyEl = document.getElementById('apiKey');
 const modelEl = document.getElementById('model');
 const weatherCityEl = document.getElementById('weatherCity');
+const contextLimitEl = document.getElementById('contextLimit');
+const maxTokensEl = document.getElementById('maxTokens');
 
 const DEFAULT_API_KEY = 'sk-5c8cbf625e744e649f99fa2277705af9';
 
@@ -392,15 +442,34 @@ apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://api.deepseek
 apiKeyEl.value = localStorage.getItem('shayu_apiKey') || DEFAULT_API_KEY;
 modelEl.value = localStorage.getItem('shayu_model') || 'deepseek-chat';
 weatherCityEl.value = localStorage.getItem('shayu_weatherCity') || '';
+contextLimitEl.value = parseInt(localStorage.getItem('shayu_contextLimit') || '10');
+maxTokensEl.value = parseInt(localStorage.getItem('shayu_maxTokens') || '500');
 autoSpeak = localStorage.getItem('shayu_autoSpeak') !== 'false';
+totalTokensUsed = parseInt(localStorage.getItem('shayu_totalTokens') || '0');
+updateTokenDisplay();
+
+function updateTokenDisplay() {
+    document.getElementById('totalTokens').textContent = totalTokensUsed;
+    document.getElementById('contextCount').textContent = messages.length;
+    const contextLimit = parseInt(localStorage.getItem('shayu_contextLimit') || '10');
+    const warnEl = document.getElementById('tokenWarn');
+    if (messages.length > contextLimit) {
+        warnEl.style.display = 'flex';
+    } else {
+        warnEl.style.display = 'none';
+    }
+}
 
 function saveConfig() {
     localStorage.setItem('shayu_apiBase', apiBaseEl.value);
     localStorage.setItem('shayu_apiKey', apiKeyEl.value);
     localStorage.setItem('shayu_model', modelEl.value);
     localStorage.setItem('shayu_weatherCity', weatherCityEl.value);
+    localStorage.setItem('shayu_contextLimit', contextLimitEl.value || '10');
+    localStorage.setItem('shayu_maxTokens', maxTokensEl.value || '500');
     toggleConfig();
-    addMessage('配置已保存～', 'system');
+    addMessage('配置已保存～上下文:' + (contextLimitEl.value || '10') + '条, 回复上限:' + (maxTokensEl.value || '500') + 'token', 'system');
+    updateTokenDisplay();
 }
 
 function toggleConfig() {
@@ -415,8 +484,11 @@ function toggleSpeech() {
 
 function clearChat() {
     messages = [];
-    chatArea.innerHTML = '<div class="message ai"><div class="bubble">已清空对话～有什么需要帮忙的吗？😊</div></div>';
+    chatArea.innerHTML = '<div class="message ai"><div class="bubble">已清空对话～有什么需要帮忙的吗？😊<br><br>💡 小提示: 清空对话会节省大量token, 推荐对话超过10轮后清理一次</div></div>';
     if (speechSynthesis) speechSynthesis.cancel();
+    document.getElementById('promptTokens').textContent = '0';
+    document.getElementById('completionTokens').textContent = '0';
+    updateTokenDisplay();
 }
 
 function askQuestion(q) {
@@ -432,6 +504,7 @@ async function handleWeatherQuery() {
     const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
     const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
     const model = modelEl.value || 'deepseek-chat';
+    const responseTokenLimit = parseInt(localStorage.getItem('shayu_maxTokens') || '500');
     
     try {
         const response = await fetch(apiBase.replace(/\/$/, '') + '/chat/completions', {
@@ -443,11 +516,11 @@ async function handleWeatherQuery() {
             body: JSON.stringify({
                 model: model,
                 messages: [
-                    {role: 'system', content: '你是天气助手，根据城市提供天气信息，回复简洁友好。'},
-                    {role: 'user', content: `${city}今天天气怎么样？温度、湿度、适合做什么？`}
+                    {role: 'system', content: '你是天气助手,根据城市提供天气信息,回复简洁友好,控制在150字以内。'},
+                    {role: 'user', content: `${city}今天天气怎么样?温度湿度和穿衣建议`}
                 ],
                 temperature: 0.7,
-                max_tokens: 300
+                max_tokens: Math.min(responseTokenLimit, 400)
             })
         });
         const data = await response.json();
@@ -455,7 +528,7 @@ async function handleWeatherQuery() {
             addMessage(data.choices[0].message.content, 'ai', autoSpeak);
         }
     } catch (e) {
-        addMessage('查询失败：' + e.message, 'system');
+        addMessage('查询失败: ' + e.message, 'system');
     }
 }
 
@@ -567,6 +640,15 @@ async function sendMessage() {
     const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
     const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
     const model = modelEl.value || 'deepseek-chat';
+    
+    // ⭐ 核心优化: 只发送最近N条消息, 大幅节省token
+    const contextLimit = parseInt(localStorage.getItem('shayu_contextLimit') || '10');
+    const responseTokenLimit = parseInt(localStorage.getItem('shayu_maxTokens') || '500');
+    
+    // 取最后N条消息(确保始终有最新内容)
+    const trimmedMessages = messages.length > contextLimit 
+        ? messages.slice(-contextLimit) 
+        : messages;
 
     try {
         const response = await fetch(apiBase.replace(/\/$/, '') + '/chat/completions', {
@@ -578,11 +660,11 @@ async function sendMessage() {
             body: JSON.stringify({
                 model: model,
                 messages: [
-                    {role: 'system', content: '你是傻宇1号，温暖有趣的AI助手。说话亲切自然，适当用emoji，回复简洁有力。'},
-                    ...messages
+                    {role: 'system', content: '你是傻宇1号,温暖有趣的AI助手。说话亲切简洁,适当用emoji。回复控制在200字以内。'},
+                    ...trimmedMessages
                 ],
                 temperature: 0.8,
-                max_tokens: 800
+                max_tokens: responseTokenLimit
             })
         });
 
@@ -593,15 +675,34 @@ async function sendMessage() {
             const reply = data.choices[0].message.content;
             addMessage(reply, 'ai', autoSpeak);
             messages.push({role: 'assistant', content: reply});
+            
+            // ⭐ 统计并显示token用量(DeepSeek API返回usage)
+            if (data.usage) {
+                const promptTokens = data.usage.prompt_tokens || 0;
+                const completionTokens = data.usage.completion_tokens || 0;
+                const totalTokens = data.usage.total_tokens || 0;
+                
+                document.getElementById('promptTokens').textContent = promptTokens;
+                document.getElementById('completionTokens').textContent = completionTokens;
+                totalTokensUsed += totalTokens;
+                localStorage.setItem('shayu_totalTokens', totalTokensUsed.toString());
+                
+                // 估算成本(DeepSeek: 0.00014元/1K input, 0.00028元/1K output)
+                const cost = (promptTokens * 0.00014 + completionTokens * 0.00028) / 1000;
+                const totalCost = totalTokensUsed * 0.0000002;
+                
+                addMessage(`本次消耗: ${promptTokens}输入+${completionTokens}输出=${totalTokens}token (约¥${cost.toFixed(4)}), 累计:${totalTokensUsed}token`, 'system');
+            }
         } else if (data.error) {
-            addMessage('错误：' + (data.error.message || JSON.stringify(data.error)), 'system');
+            addMessage('错误: ' + (data.error.message || JSON.stringify(data.error)), 'system');
         }
     } catch (e) {
         removeTyping();
-        addMessage('出错了：' + e.message, 'system');
+        addMessage('出错了: ' + e.message, 'system');
     }
 
     sendBtn.disabled = false;
+    updateTokenDisplay();
     userInput.focus();
 }
 
