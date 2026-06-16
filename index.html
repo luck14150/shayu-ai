@@ -220,6 +220,43 @@ body {
     justify-content: center;
 }
 .send-btn:disabled { opacity: 0.5; }
+/* Token用量监控栏 */
+.token-bar {
+    padding: 6px 14px;
+    background: linear-gradient(90deg, #f0f4ff 0%, #e8eaf6 100%);
+    border-top: 1px solid #dde2f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #667eea;
+    flex-shrink: 0;
+    gap: 8px;
+}
+.token-bar .token-info {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.token-bar .token-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.token-bar .token-warn {
+    color: #ef4444;
+    font-weight: bold;
+}
+.token-bar .token-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+}
 /* 底部 */
 .footer-tip {
     text-align: center;
@@ -339,7 +376,17 @@ body {
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
     </div>
     
-    <div class="footer-tip">傻宇1号 v4.0 · 全新优化</div>
+    <div class="token-bar" id="tokenBar">
+        <div class="token-info">
+            <div class="token-item">📝 输入: <span id="promptTokens">0</span></div>
+            <div class="token-item">💬 回复: <span id="completionTokens">0</span></div>
+            <div class="token-item">📊 累计: <span id="totalTokens">0</span></div>
+            <div class="token-item">🔄 消息: <span id="msgCount">0</span>条</div>
+        </div>
+        <button class="token-btn" onclick="resetTokenCount()">清零</button>
+    </div>
+    
+    <div class="footer-tip">傻宇1号 v4.0.1 · Token监控</div>
 </div>
 
 <div class="config-panel" id="configPanel">
@@ -375,6 +422,7 @@ let recognition = null;
 let speechSynthesis = window.speechSynthesis || null;
 let currentUtterance = null;
 let autoSpeak = true;
+let totalTokensUsed = 0;
 
 const chatArea = document.getElementById('chatArea');
 const userInput = document.getElementById('userInput');
@@ -393,6 +441,25 @@ apiKeyEl.value = localStorage.getItem('shayu_apiKey') || DEFAULT_API_KEY;
 modelEl.value = localStorage.getItem('shayu_model') || 'deepseek-chat';
 weatherCityEl.value = localStorage.getItem('shayu_weatherCity') || '';
 autoSpeak = localStorage.getItem('shayu_autoSpeak') !== 'false';
+totalTokensUsed = parseInt(localStorage.getItem('shayu_totalTokens') || '0');
+document.getElementById('totalTokens').textContent = totalTokensUsed;
+
+function updateTokenDisplay(prompt, completion, total, msgCount) {
+    document.getElementById('promptTokens').textContent = prompt;
+    document.getElementById('completionTokens').textContent = completion;
+    document.getElementById('totalTokens').textContent = total;
+    document.getElementById('msgCount').textContent = msgCount;
+}
+
+function resetTokenCount() {
+    totalTokensUsed = 0;
+    localStorage.setItem('shayu_totalTokens', '0');
+    document.getElementById('promptTokens').textContent = '0';
+    document.getElementById('completionTokens').textContent = '0';
+    document.getElementById('totalTokens').textContent = '0';
+    document.getElementById('msgCount').textContent = messages.length;
+    addMessage('Token统计已清零～', 'system');
+}
 
 function saveConfig() {
     localStorage.setItem('shayu_apiBase', apiBaseEl.value);
@@ -417,6 +484,9 @@ function clearChat() {
     messages = [];
     chatArea.innerHTML = '<div class="message ai"><div class="bubble">已清空对话～有什么需要帮忙的吗？😊</div></div>';
     if (speechSynthesis) speechSynthesis.cancel();
+    document.getElementById('promptTokens').textContent = '0';
+    document.getElementById('completionTokens').textContent = '0';
+    document.getElementById('msgCount').textContent = '0';
 }
 
 function askQuestion(q) {
@@ -593,6 +663,18 @@ async function sendMessage() {
             const reply = data.choices[0].message.content;
             addMessage(reply, 'ai', autoSpeak);
             messages.push({role: 'assistant', content: reply});
+            
+            // Token统计
+            if (data.usage) {
+                const p = data.usage.prompt_tokens || 0;
+                const c = data.usage.completion_tokens || 0;
+                const t = data.usage.total_tokens || 0;
+                totalTokensUsed += t;
+                localStorage.setItem('shayu_totalTokens', totalTokensUsed.toString());
+                updateTokenDisplay(p, c, totalTokensUsed, messages.length);
+            } else {
+                updateTokenDisplay('-', '-', totalTokensUsed, messages.length);
+            }
         } else if (data.error) {
             addMessage('错误：' + (data.error.message || JSON.stringify(data.error)), 'system');
         }
