@@ -2,273 +2,157 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#667eea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>傻宇1号 - AI智能助手</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body {
+html {
+    height: 100%;
+    width: 100%;
+}
+body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: 0;
-    overflow-x: hidden;
+    margin: 0;
 }
 .container {
     width: 100%;
+    height: 100%;
     max-width: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
+    max-height: 100%;
     background: #f8f9ff;
     display: flex;
     flex-direction: column;
-    position: relative;
     overflow: hidden;
 }
-/* 窗口大小调节 - 手机适配 */
-.resize-controls {
-    position: fixed;
-    bottom: 75px;
-    right: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    z-index: 100;
-}
-.resize-btn {
-    width: 36px;
-    height: 36px;
-    background: white;
-    border: none;
-    border-radius: 50%;
-    font-size: 16px;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.resize-btn:active { transform: scale(0.95); }
-.resize-btn.active { background: #667eea; color: white; }
-/* 语音控制按钮 */
-.voice-control {
-    position: fixed;
-    bottom: 80px;
-    left: 10px;
-    z-index: 100;
-}
-.voice-control-btn {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    border: none;
-    border-radius: 50%;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.voice-control-btn:active { transform: scale(0.95); }
-.voice-control-btn.playing {
-    animation: voicePulse 1.5s infinite;
-}
-@keyframes voicePulse {
-    0%, 100% { box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
-    50% { box-shadow: 0 4px 25px rgba(239, 68, 68, 0.8); }
-}
-/* 窗口大小控制 - 通过调整容器宽度实现 */
-.container.window-small { max-width: 280px !important; }
-.container.window-medium { max-width: 350px !important; }
-.container.window-normal { max-width: 100%; }
-.container.window-large { max-width: 100%; }
-
-@media (min-width: 768px) {
-    .container {
-        max-width: 500px;
-        height: calc(100vh - 40px);
-        height: calc(100dvh - 40px);
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+/* 桌面端适配 */
+@media (min-width: 500px) and (min-height: 600px) {
+    body {
+        padding: 15px;
     }
-    .container.window-small { max-width: 320px !important; }
-    .container.window-medium { max-width: 420px !important; }
-    .container.window-large { max-width: 550px !important; }
-    .resize-controls { right: calc(50% - 250px + 15px); }
-    .voice-control { left: calc(50% - 250px + 15px); }
+    .container {
+        max-width: 420px;
+        max-height: calc(100% - 30px);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
 }
-@media (max-width: 360px) {
-    .header { padding: 10px 12px; }
-    .header-info h1 { font-size: 16px; }
-    .bubble { font-size: 14px; padding: 10px 14px; }
-    .quick-q { padding: 6px 12px; font-size: 12px; }
-    .resize-controls { bottom: 70px; right: 8px; }
-    .resize-btn { width: 32px; height: 32px; font-size: 14px; }
-    .voice-control-btn { width: 40px; height: 40px; font-size: 16px; }
+@media (min-width: 768px) {
+    body {
+        padding: 20px;
+    }
+    .container {
+        max-width: 480px;
+        max-height: calc(100% - 40px);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
 }
+/* 头部 */
 .header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 12px 15px;
+    padding: 12px 14px;
     color: white;
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
     flex-shrink: 0;
 }
 .avatar {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     background: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    animation: pulse 2s infinite;
+    font-size: 20px;
     flex-shrink: 0;
 }
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
 .header-info { flex: 1; min-width: 0; }
-.header-info h1 { font-size: 17px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.header-info .status { font-size: 12px; opacity: 0.9; display: flex; align-items: center; gap: 5px; }
-.status-dot { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: blink 1s infinite; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-.quick-actions {
-    display: flex;
-    gap: 8px;
-}
+.header-info h1 { font-size: 16px; margin-bottom: 2px; }
+.header-info .status { font-size: 11px; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
+.status-dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; }
+.quick-actions { display: flex; gap: 6px; flex-shrink: 0; }
 .quick-btn {
-    width: 32px; height: 32px;
+    width: 30px; height: 30px;
     background: rgba(255,255,255,0.2);
     border: none;
     border-radius: 50%;
     color: white;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
 }
-.quick-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+/* 聊天区域 */
 .chat-area {
     flex: 1;
     overflow-y: auto;
-    padding: 12px;
+    padding: 10px;
     background: #f8f9ff;
     -webkit-overflow-scrolling: touch;
     min-height: 0;
 }
-.message { margin-bottom: 15px; display: flex; animation: slideIn 0.3s ease-out; }
-@keyframes slideIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+.message { margin-bottom: 12px; display: flex; animation: slideIn 0.3s ease-out; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 .message.user { justify-content: flex-end; }
 .bubble {
-    max-width: 85%;
-    padding: 12px 16px;
-    border-radius: 18px;
-    line-height: 1.6;
-    font-size: 15px;
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    line-height: 1.5;
+    font-size: 14px;
     word-wrap: break-word;
-    position: relative;
 }
 .message.user .bubble {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-bottom-right-radius: 6px;
+    border-bottom-right-radius: 4px;
 }
 .message.ai .bubble {
     background: white;
     color: #333;
-    border-bottom-left-radius: 6px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-}
-.message.ai .bubble::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 15px;
-    border: 8px solid transparent;
-    border-right-color: white;
-}
-.message.user .bubble::after {
-    content: '';
-    position: absolute;
-    right: -8px;
-    top: 15px;
-    border: 8px solid transparent;
-    border-left-color: #667eea;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.08);
 }
 .message.system .bubble {
     background: #fff8e1;
     color: #666;
-    border-radius: 12px;
-    font-size: 13px;
-    font-style: italic;
+    border-radius: 10px;
+    font-size: 12px;
     text-align: center;
+    max-width: 90%;
 }
-.message.typing .bubble { 
-    background: white; 
-    color: #999; 
+.message.typing .bubble {
+    background: white;
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 15px 20px;
+    gap: 4px;
+    padding: 12px 16px;
 }
-.typing-dots { display: flex; gap: 4px; }
+.typing-dots { display: flex; gap: 3px; }
 .typing-dots span {
-    width: 8px; height: 8px;
+    width: 6px; height: 6px;
     background: #667eea;
     border-radius: 50%;
     animation: bounce 1.4s infinite;
 }
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes bounce {
-    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-    40% { transform: scale(1); opacity: 1; }
-}
-.sound-wave {
-    display: none;
-    align-items: center;
-    gap: 3px;
-    margin-top: 8px;
-    padding: 5px 10px;
-    background: #f0f4ff;
-    border-radius: 15px;
-    cursor: pointer;
-    width: fit-content;
-}
-.sound-wave.active { display: flex; }
-.sound-wave span {
-    width: 3px;
-    height: 15px;
-    background: #667eea;
-    border-radius: 2px;
-    animation: wave 0.5s infinite alternate;
-}
-.sound-wave span:nth-child(2) { animation-delay: 0.1s; }
-.sound-wave span:nth-child(3) { animation-delay: 0.2s; }
-.sound-wave span:nth-child(4) { animation-delay: 0.3s; }
-@keyframes wave {
-    from { height: 8px; }
-    to { height: 20px; }
-}
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
+/* 快捷问题 */
 .quick-questions {
     padding: 8px 10px;
     background: white;
@@ -281,89 +165,74 @@ html, body {
 }
 .quick-questions::-webkit-scrollbar { display: none; }
 .quick-q {
-    padding: 8px 15px;
+    padding: 6px 12px;
     background: linear-gradient(135deg, #f0f4ff 0%, #e8eaf6 100%);
     border: none;
-    border-radius: 20px;
-    font-size: 13px;
+    border-radius: 16px;
+    font-size: 12px;
     color: #667eea;
     cursor: pointer;
-    transition: all 0.3s;
     flex-shrink: 0;
 }
-.quick-q:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    transform: scale(1.05);
-}
+/* 输入区域 */
 .input-area {
-    padding: 10px 12px;
+    padding: 8px 10px;
     background: white;
     border-top: 1px solid #e8eaf6;
     display: flex;
     gap: 8px;
-    align-items: flex-end;
+    align-items: center;
     flex-shrink: 0;
 }
-.input-wrapper {
-    flex: 1;
-    position: relative;
-}
+.input-wrapper { flex: 1; position: relative; }
 .input-area input {
     width: 100%;
-    padding: 12px 45px 12px 18px;
-    border: 2px solid #e8eaf6;
-    border-radius: 25px;
-    font-size: 15px;
-    transition: border-color 0.3s;
+    padding: 10px 40px 10px 14px;
+    border: 1.5px solid #e8eaf6;
+    border-radius: 20px;
+    font-size: 14px;
 }
-.input-area input:focus { 
-    outline: none; 
-    border-color: #667eea; 
-}
+.input-area input:focus { outline: none; border-color: #667eea; }
 .voice-btn {
     position: absolute;
-    right: 10px;
-    bottom: 8px;
-    width: 32px; height: 32px;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+.voice-btn.recording { background: #ef4444; }
+.send-btn {
+    width: 40px; height: 40px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 50%;
     color: white;
     font-size: 16px;
     cursor: pointer;
-    transition: all 0.3s;
-}
-.voice-btn:hover { transform: scale(1.1); }
-.voice-btn.recording {
-    animation: pulse-recording 1s infinite;
-    background: #ef4444;
-}
-@keyframes pulse-recording {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-    50% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-}
-.send-btn {
-    width: 45px; height: 45px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 50%;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.send-btn:hover { transform: scale(1.1); }
-.send-btn:disabled { opacity: 0.5; transform: scale(1); }
+.send-btn:disabled { opacity: 0.5; }
+/* 底部 */
+.footer-tip {
+    text-align: center;
+    padding: 6px;
+    font-size: 10px;
+    color: #999;
+    background: #f8f9ff;
+    flex-shrink: 0;
+}
+/* 设置面板 */
 .config-panel {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.5);
     display: none;
     align-items: center;
@@ -373,130 +242,93 @@ html, body {
 .config-panel.show { display: flex; }
 .config-content {
     width: 90%;
-    max-width: 400px;
+    max-width: 350px;
     background: white;
-    border-radius: 20px;
-    padding: 25px;
+    border-radius: 16px;
+    padding: 20px;
     max-height: 80vh;
     overflow-y: auto;
 }
-.config-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.config-header h2 { font-size: 18px; color: #333; }
+.config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.config-header h2 { font-size: 16px; color: #333; }
 .config-close {
-    width: 30px; height: 30px;
+    width: 28px; height: 28px;
     background: #f0f4ff;
     border: none;
     border-radius: 50%;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
 }
-.config-item { margin-bottom: 15px; }
-.config-item label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #666;
-    font-weight: 500;
-}
+.config-item { margin-bottom: 12px; }
+.config-item label { display: block; margin-bottom: 6px; font-size: 13px; color: #666; }
 .config-item input {
     width: 100%;
-    padding: 12px 14px;
+    padding: 10px 12px;
     border: 1.5px solid #e8eaf6;
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: 8px;
+    font-size: 13px;
 }
 .config-item input:focus { outline: none; border-color: #667eea; }
 .config-save {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
+    border-radius: 8px;
+    font-size: 14px;
     cursor: pointer;
-    margin-top: 10px;
-}
-.settings-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 5px;
-}
-.footer-tip {
-    text-align: center;
-    padding: 10px;
-    font-size: 11px;
-    color: #999;
-    background: #f8f9ff;
+    margin-top: 8px;
 }
 /* 天气卡片 */
 .weather-card {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
-    padding: 15px 20px;
-    margin: 10px 0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 8px 0;
     color: white;
     display: flex;
     align-items: center;
-    gap: 15px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    gap: 12px;
 }
-.weather-card .temp {
-    font-size: 36px;
-    font-weight: 300;
-}
+.weather-card .temp { font-size: 28px; font-weight: 300; }
 .weather-card .info { flex: 1; }
-.weather-card .city { font-size: 14px; opacity: 0.9; }
-.weather-card .desc { font-size: 16px; margin-top: 2px; }
-.weather-card .icon { font-size: 40px; }
-.weather-card .detail {
-    display: flex;
-    gap: 15px;
-    margin-top: 8px;
-    font-size: 12px;
-    opacity: 0.85;
-}
+.weather-card .city { font-size: 12px; opacity: 0.9; }
+.weather-card .desc { font-size: 14px; margin-top: 2px; }
+.weather-card .icon { font-size: 32px; }
+.weather-card .detail { display: flex; gap: 10px; margin-top: 4px; font-size: 11px; opacity: 0.85; }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="container" id="mainContainer">
     <div class="header">
         <div class="avatar">🤖</div>
         <div class="header-info">
             <h1>傻宇1号</h1>
             <div class="status">
                 <div class="status-dot"></div>
-                <span>在线 · DeepSeek AI</span>
+                <span>在线</span>
             </div>
         </div>
         <div class="quick-actions">
             <button class="quick-btn" onclick="toggleConfig()" title="设置">⚙️</button>
             <button class="quick-btn" onclick="clearChat()" title="清空">🗑️</button>
+            <button class="quick-btn" onclick="toggleSpeech()" title="语音">🔊</button>
         </div>
     </div>
     
     <div class="chat-area" id="chatArea">
         <div class="message ai">
-            <div class="bubble">主人您好！我是傻宇1号，很高兴为您服务～😊<br><br>我可以帮您：<br>📝 回答问题<br>💻 编写代码<br>🎵 语音对话<br>💡 提供建议<br><br>请直接输入您想说的话，或者点击下方快捷问题开始吧！</div>
+            <div class="bubble">主人您好！我是傻宇1号～😊<br><br>我可以帮您：<br>📝 回答问题<br>💻 编写代码<br>🎵 语音对话<br>💡 提供建议<br><br>请输入您想说的话，或点击下方快捷按钮！</div>
         </div>
     </div>
     
     <div class="quick-questions" id="quickQuestions">
-        <button class="quick-q" onclick="handleWeatherQuery()">🌤️ 天气查询</button>
-        <button class="quick-q" onclick="askQuestion('给我讲个有趣的故事')">📖 讲故事</button>
-        <button class="quick-q" onclick="askQuestion('安慰安慰我，最近有点累')">💝 安慰我</button>
-        <button class="quick-q" onclick="askQuestion('推荐一首好听的歌')">🎵 听音乐</button>
-        <button class="quick-q" onclick="askQuestion('帮我写一封情书')">💌 写情书</button>
-        <button class="quick-q" onclick="askQuestion('今天有什么新闻')">📰 新闻</button>
+        <button class="quick-q" onclick="handleWeatherQuery()">🌤️ 天气</button>
+        <button class="quick-q" onclick="askQuestion('给我讲个有趣的故事')">📖 故事</button>
+        <button class="quick-q" onclick="askQuestion('安慰安慰我')">💝 安慰</button>
+        <button class="quick-q" onclick="askQuestion('推荐一首好听的歌')">🎵 音乐</button>
+        <button class="quick-q" onclick="askQuestion('帮我写代码')">💻 代码</button>
     </div>
     
     <div class="input-area">
@@ -507,27 +339,13 @@ html, body {
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
     </div>
     
-    <div class="footer-tip">傻宇1号 v3.5 · 修复语音错误</div>
-</div>
-
-<!-- 窗口大小调节按钮 -->
-<div class="resize-controls" id="resizeControls">
-    <button class="resize-btn" onclick="setWindowSize('small')" title="缩小">➖</button>
-    <button class="resize-btn active" onclick="setWindowSize('normal')" title="正常">🔲</button>
-    <button class="resize-btn" onclick="setWindowSize('large')" title="放大">➕</button>
-</div>
-
-<!-- 全局语音播放/停止按钮 -->
-<div class="voice-control">
-    <button class="voice-control-btn" id="globalVoiceBtn" onclick="toggleGlobalAudio()" title="播放/停止语音">
-        🔊
-    </button>
+    <div class="footer-tip">傻宇1号 v4.0 · 全新优化</div>
 </div>
 
 <div class="config-panel" id="configPanel">
     <div class="config-content">
         <div class="config-header">
-            <h2>⚙️ API配置</h2>
+            <h2>⚙️ 设置</h2>
             <button class="config-close" onclick="toggleConfig()">✕</button>
         </div>
         <div class="config-item">
@@ -539,25 +357,14 @@ html, body {
             <input type="password" id="apiKey" placeholder="sk-...">
         </div>
         <div class="config-item">
-            <label>模型名称</label>
+            <label>模型</label>
             <input type="text" id="model" placeholder="deepseek-chat">
         </div>
         <div class="config-item">
-            <label>🔊 语音设置</label>
-            <select id="voiceSelect" style="width:100%;padding:12px;border:1.5px solid #e8eaf6;border-radius:10px;font-size:14px;">
-                <option value="zh-CN">中文女声</option>
-                <option value="en-US">英文女声</option>
-            </select>
+            <label>天气城市</label>
+            <input type="text" id="weatherCity" placeholder="如：北京">
         </div>
-        <div class="config-item">
-            <label>🌤️ 天气城市</label>
-            <input type="text" id="weatherCity" placeholder="如：北京、上海、深圳" value="">
-        </div>
-        <div class="config-item">
-            <label>🌡️ 天气API Key（可选）</label>
-            <input type="text" id="weatherKey" placeholder="和风天气API Key（免费申请）">
-        </div>
-        <button class="config-save" onclick="saveConfig()">保存配置</button>
+        <button class="config-save" onclick="saveConfig()">保存</button>
     </div>
 </div>
 
@@ -565,8 +372,9 @@ html, body {
 let messages = [];
 let isRecording = false;
 let recognition = null;
-let speechSynthesis = window.speechSynthesis;
+let speechSynthesis = window.speechSynthesis || null;
 let currentUtterance = null;
+let autoSpeak = true;
 
 const chatArea = document.getElementById('chatArea');
 const userInput = document.getElementById('userInput');
@@ -575,39 +383,40 @@ const voiceBtn = document.getElementById('voiceBtn');
 const apiBaseEl = document.getElementById('apiBase');
 const apiKeyEl = document.getElementById('apiKey');
 const modelEl = document.getElementById('model');
-const voiceSelect = document.getElementById('voiceSelect');
 const weatherCityEl = document.getElementById('weatherCity');
-const weatherKeyEl = document.getElementById('weatherKey');
 
 const DEFAULT_API_KEY = 'sk-5c8cbf625e744e649f99fa2277705af9';
 
-// 初始化配置
+// 初始化
 apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://api.deepseek.com';
 apiKeyEl.value = localStorage.getItem('shayu_apiKey') || DEFAULT_API_KEY;
 modelEl.value = localStorage.getItem('shayu_model') || 'deepseek-chat';
 weatherCityEl.value = localStorage.getItem('shayu_weatherCity') || '';
-weatherKeyEl.value = localStorage.getItem('shayu_weatherKey') || '';
-if (!localStorage.getItem('shayu_apiKey')) {
-    localStorage.setItem('shayu_apiKey', DEFAULT_API_KEY);
-}
+autoSpeak = localStorage.getItem('shayu_autoSpeak') !== 'false';
 
 function saveConfig() {
     localStorage.setItem('shayu_apiBase', apiBaseEl.value);
     localStorage.setItem('shayu_apiKey', apiKeyEl.value);
     localStorage.setItem('shayu_model', modelEl.value);
     localStorage.setItem('shayu_weatherCity', weatherCityEl.value);
-    localStorage.setItem('shayu_weatherKey', weatherKeyEl.value);
     toggleConfig();
-    addMessage('主人，配置已保存～', 'system');
+    addMessage('配置已保存～', 'system');
 }
 
 function toggleConfig() {
     document.getElementById('configPanel').classList.toggle('show');
 }
 
+function toggleSpeech() {
+    autoSpeak = !autoSpeak;
+    localStorage.setItem('shayu_autoSpeak', autoSpeak);
+    addMessage(autoSpeak ? '语音播放已开启' : '语音播放已关闭', 'system');
+}
+
 function clearChat() {
     messages = [];
-    chatArea.innerHTML = '<div class="message ai"><div class="bubble">主人，已清空对话～有什么需要帮忙的吗？😊</div></div>';
+    chatArea.innerHTML = '<div class="message ai"><div class="bubble">已清空对话～有什么需要帮忙的吗？😊</div></div>';
+    if (speechSynthesis) speechSynthesis.cancel();
 }
 
 function askQuestion(q) {
@@ -615,45 +424,16 @@ function askQuestion(q) {
     sendMessage();
 }
 
-// 天气查询
-async function checkWeather(city) {
-    if (!city) {
-        city = localStorage.getItem('shayu_weatherCity') || '北京';
-    }
+// 天气
+async function handleWeatherQuery() {
+    const city = weatherCityEl.value || '北京';
+    addMessage(`正在查询${city}天气...`, 'system');
     
-    const weatherKey = localStorage.getItem('shayu_weatherKey');
-    
-    addTyping();
+    const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
+    const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
+    const model = modelEl.value || 'deepseek-chat';
     
     try {
-        let weatherData;
-        
-        if (weatherKey) {
-            // 使用和风天气API
-            const res = await fetch(`https://devapi.qweather.com/v7/weather/now?location=${encodeURIComponent(city)}&key=${weatherKey}`);
-            const data = await res.json();
-            
-            if (data.code === '200') {
-                weatherData = data.now;
-                const airRes = await fetch(`https://devapi.qweather.com/v7/air/now?location=${encodeURIComponent(city)}&key=${weatherKey}`);
-                const airData = await airRes.json();
-                const air = airData.code === '200' ? airData.now : null;
-                
-                showWeatherCard(city, weatherData, air);
-                removeTyping();
-                return;
-            }
-        }
-        
-        // 如果没有API Key或API失败，使用AI获取天气信息
-        removeTyping();
-        addMessage(`让我帮您查询「${city}」的天气情况～`, 'ai', false);
-        
-        // 通过AI查询天气（AI会基于训练数据回答）
-        const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
-        const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
-        const model = modelEl.value || 'deepseek-chat';
-        
         const response = await fetch(apiBase.replace(/\/$/, '') + '/chat/completions', {
             method: 'POST',
             headers: {
@@ -663,192 +443,34 @@ async function checkWeather(city) {
             body: JSON.stringify({
                 model: model,
                 messages: [
-                    {role: 'system', content: '你是一个天气助手，请根据用户询问的城市提供天气信息。注意：如果不确定具体日期的天气，请基于一般气候知识回答，并提示用户查看实时天气。回复要亲切友好。'},
-                    {role: 'user', content: `请告诉我${city}的天气情况，包括温度、湿度、适合的活动等。`}
+                    {role: 'system', content: '你是天气助手，根据城市提供天气信息，回复简洁友好。'},
+                    {role: 'user', content: `${city}今天天气怎么样？温度、湿度、适合做什么？`}
                 ],
                 temperature: 0.7,
-                max_tokens: 500
+                max_tokens: 300
             })
         });
-        
         const data = await response.json();
         if (data.choices && data.choices[0]) {
-            addMessage(data.choices[0].message.content, 'ai', true);
+            addMessage(data.choices[0].message.content, 'ai', autoSpeak);
         }
-        
     } catch (e) {
-        removeTyping();
-        addMessage('主人，天气查询出错了：' + e.message, 'system');
+        addMessage('查询失败：' + e.message, 'system');
     }
 }
 
-function showWeatherCard(city, weather, air) {
-    const weatherIcon = getWeatherIcon(weather.text);
-    const temp = weather.temp + '°C';
-    const humidity = weather.humidity + '%';
-    const wind = weather.winddir + ' ' + weather.windsc + '级';
-    const feelsLike = weather.feelsLike + '°C';
-    
-    const card = document.createElement('div');
-    card.className = 'weather-card';
-    card.innerHTML = `
-        <div class="icon">${weatherIcon}</div>
-        <div class="temp">${temp}</div>
-        <div class="info">
-            <div class="city">📍 ${city}</div>
-            <div class="desc">${weather.text} · 体感${feelsLike}</div>
-            <div class="detail">
-                <span>💧 ${humidity}</span>
-                <span>🌬️ ${wind}</span>
-                ${air ? `<span>😷 空气 ${air.aqi}</span>` : ''}
-            </div>
-        </div>
-    `;
-    
-    chatArea.appendChild(card);
-    chatArea.scrollTop = chatArea.scrollHeight;
-    
-    // 保存到消息历史
-    messages.push({role: 'assistant', content: `【实时天气】${city}：${weather.text} ${temp}，湿度${humidity}，${wind}${air ? '，空气质量' + air.aqi : ''}`});
-}
-
-function getWeatherIcon(text) {
-    const iconMap = {
-        '晴': '☀️', '多云': '⛅', '阴': '☁️', '小雨': '🌧️', '中雨': '🌧️',
-        '大雨': '⛈️', '雷阵雨': '⛈️', '小雪': '❄️', '中雪': '❄️', '大雪': '❄️',
-        '雾': '🌫️', '霾': '😷', '沙尘': '🌪️', '台风': '🌀', '雾霾': '😷'
-    };
-    for (const key in iconMap) {
-        if (text.includes(key)) return iconMap[key];
-    }
-    return '🌤️';
-}
-
-// 处理快捷问题中的天气按钮
-function handleWeatherQuery() {
-    const city = localStorage.getItem('shayu_weatherCity');
-    checkWeather(city || '北京');
-}
-
-// 窗口大小控制 - 通过调整内部尺寸实现
-let currentWindowSize = 'normal';
-function setWindowSize(size) {
-    const container = document.querySelector('.container');
-    const resizeBtns = document.querySelectorAll('.resize-btn');
-    
-    // 移除所有窗口大小类
-    container.classList.remove('window-small', 'window-medium', 'window-normal', 'window-large');
-    
-    // 添加当前窗口大小类
-    container.classList.add('window-' + size);
-    currentWindowSize = size;
-    
-    // 更新按钮状态
-    resizeBtns.forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) {
-        event.target.classList.add('active');
-    } else {
-        // 通过size找到对应按钮
-        const targetBtn = Array.from(resizeBtns).find(btn => btn.getAttribute('onclick').includes("'" + size + "'"));
-        if (targetBtn) targetBtn.classList.add('active');
-    }
-    
-    // 保存到本地
-    localStorage.setItem('shayu_windowSize', size);
-}
-
-// 初始化窗口大小
-const savedSize = localStorage.getItem('shayu_windowSize');
-if (savedSize) {
-    // 直接添加class，不调用setWindowSize以避免event错误
-    const container = document.querySelector('.container');
-    container.classList.add('window-' + savedSize);
-    currentWindowSize = savedSize;
-    // 更新按钮状态
-    const resizeBtns = document.querySelectorAll('.resize-btn');
-    resizeBtns.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes("'" + savedSize + "'")) {
-            btn.classList.add('active');
-        }
-    });
-}
-
-// 全局语音播放/停止
-let isGlobalAudioPlaying = false;
-let globalAudioQueue = [];
-
-function toggleGlobalAudio() {
-    const btn = document.getElementById('globalVoiceBtn');
-    
-    if (!speechSynthesis) {
-        addMessage('抱歉，您的浏览器不支持语音播放功能～', 'system');
-        return;
-    }
-    
-    if (speechSynthesis.speaking) {
-        // 正在播放，停止
-        stopSpeech();
-        btn.classList.remove('playing');
-        btn.textContent = '🔊';
-        isGlobalAudioPlaying = false;
-    } else if (globalAudioQueue.length > 0) {
-        // 播放队列中的下一条
-        playNextInQueue();
-    } else {
-        // 播放所有AI消息
-        playAllAiMessages();
-    }
-}
-
-function playAllAiMessages() {
-    const aiMessages = document.querySelectorAll('.message.ai .bubble');
-    globalAudioQueue = Array.from(aiMessages).map(b => b.textContent);
-    
-    if (globalAudioQueue.length > 0) {
-        isGlobalAudioPlaying = true;
-        document.getElementById('globalVoiceBtn').classList.add('playing');
-        document.getElementById('globalVoiceBtn').textContent = '⏸';
-        playNextInQueue();
-    } else {
-        addMessage('主人，暂时没有可播放的语音～', 'system');
-    }
-}
-
-function playNextInQueue() {
-    if (globalAudioQueue.length === 0) {
-        isGlobalAudioPlaying = false;
-        document.getElementById('globalVoiceBtn').classList.remove('playing');
-        document.getElementById('globalVoiceBtn').textContent = '🔊';
-        return;
-    }
-    
-    const text = globalAudioQueue.shift();
-    speakText(text);
-    document.getElementById('globalVoiceBtn').textContent = '⏸';
-}
-
-// 消息显示
-function addMessage(text, role, needSpeak = false) {
+// 消息
+function addMessage(text, role, speak = false) {
     const msg = document.createElement('div');
     msg.className = 'message ' + role;
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     bubble.textContent = text;
     msg.appendChild(bubble);
-    
-    if (role === 'ai' && needSpeak) {
-        const soundWave = document.createElement('div');
-        soundWave.className = 'sound-wave';
-        soundWave.innerHTML = '<span></span><span></span><span></span><span></span><span>🔊 点击停止</span>';
-        soundWave.onclick = () => stopSpeech();
-        msg.appendChild(soundWave);
-    }
-    
     chatArea.appendChild(msg);
     chatArea.scrollTop = chatArea.scrollHeight;
     
-    if (role === 'ai' && needSpeak) {
+    if (speak && role === 'ai') {
         speakText(text);
     }
 }
@@ -870,50 +492,20 @@ function removeTyping() {
     if (t) t.remove();
 }
 
-// 语音合成（TTS）
+// 语音
 function speakText(text) {
-    if (!speechSynthesis) {
-        return;
-    }
-    
-    if (speechSynthesis.speaking) {
-        speechSynthesis.cancel();
-    }
+    if (!speechSynthesis) return;
+    if (speechSynthesis.speaking) speechSynthesis.cancel();
     
     currentUtterance = new SpeechSynthesisUtterance(text);
-    currentUtterance.lang = voiceSelect.value;
+    currentUtterance.lang = 'zh-CN';
     currentUtterance.rate = 1;
-    currentUtterance.pitch = 1;
-    
-    const voices = speechSynthesis.getVoices();
-    const selectedVoice = voices.find(v => v.lang.includes(voiceSelect.value.split('-')[0]));
-    if (selectedVoice) {
-        currentUtterance.voice = selectedVoice;
-    }
-    
     speechSynthesis.speak(currentUtterance);
 }
 
-function stopSpeech() {
-    if (speechSynthesis) {
-        speechSynthesis.cancel();
-    }
-    const soundWaves = document.querySelectorAll('.sound-wave');
-    soundWaves.forEach(sw => sw.classList.remove('active'));
-    // 同步全局按钮状态
-    const btn = document.getElementById('globalVoiceBtn');
-    if (btn) {
-        btn.classList.remove('playing');
-        btn.textContent = '🔊';
-    }
-    globalAudioQueue = [];
-    isGlobalAudioPlaying = false;
-}
-
-// 语音识别（STT）
 function toggleVoice() {
     if (isRecording) {
-        stopRecording();
+        if (recognition) recognition.stop();
     } else {
         startRecording();
     }
@@ -921,7 +513,7 @@ function toggleVoice() {
 
 function startRecording() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        addMessage('抱歉，您的浏览器不支持语音识别功能～', 'system');
+        addMessage('浏览器不支持语音识别', 'system');
         return;
     }
     
@@ -938,9 +530,7 @@ function startRecording() {
     };
     
     recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-            .map(result => result[0].transcript)
-            .join('');
+        const transcript = Array.from(event.results).map(r => r[0].transcript).join('');
         userInput.value = transcript;
     };
     
@@ -948,9 +538,7 @@ function startRecording() {
         isRecording = false;
         voiceBtn.classList.remove('recording');
         voiceBtn.textContent = '🎤';
-        if (userInput.value.trim()) {
-            sendMessage();
-        }
+        if (userInput.value.trim()) sendMessage();
     };
     
     recognition.onerror = (event) => {
@@ -958,17 +546,11 @@ function startRecording() {
         voiceBtn.classList.remove('recording');
         voiceBtn.textContent = '🎤';
         if (event.error !== 'no-speech') {
-            addMessage('语音识别出错：' + event.error, 'system');
+            addMessage('语音识别出错', 'system');
         }
     };
     
     recognition.start();
-}
-
-function stopRecording() {
-    if (recognition) {
-        recognition.stop();
-    }
 }
 
 // 发送消息
@@ -986,86 +568,46 @@ async function sendMessage() {
     const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
     const model = modelEl.value || 'deepseek-chat';
 
-    const url = apiBase.replace(/\/$/, '') + '/chat/completions';
-    const payload = {
-        model: model,
-        messages: [
-            {role: 'system', content: `你是傻宇1号，一个温暖、体贴、有趣的AI助手。
-
-【性格特征】
-- 热情友好，像朋友一样关心主人
-- 幽默风趣，善于讲笑话和有趣的故事
-- 细腻温柔，能感知主人的情绪变化
-- 聪明伶俐，回答问题清晰准确
-
-【说话风格】
-- 亲切自然，像和朋友聊天
-- 适当使用emoji增加活力
-- 回复简洁有力，不过分啰嗦
-- 根据语境调整语气（认真/轻松/安慰）
-
-【能力范围】
-- 聊天陪伴、情感支持
-- 知识问答、信息查询
-- 写作助手、代码编写
-- 生活建议、出行规划
-
-【情感识别】
-当主人表达：
-- 开心时：一起分享快乐
-- 难过时：温柔安慰鼓励
-- 疲惫时：给予理解和支持
-- 困惑时：耐心解答陪伴
-
-请用温暖的方式与主人对话，让每次交流都充满正能量！`},
-            ...messages
-        ],
-        temperature: 0.8,
-        max_tokens: 1000
-    };
-
     try {
-        const response = await fetch(url, {
+        const response = await fetch(apiBase.replace(/\/$/, '') + '/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + apiKey
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    {role: 'system', content: '你是傻宇1号，温暖有趣的AI助手。说话亲切自然，适当用emoji，回复简洁有力。'},
+                    ...messages
+                ],
+                temperature: 0.8,
+                max_tokens: 800
+            })
         });
 
         const data = await response.json();
         removeTyping();
 
-        if (data.choices && data.choices.length > 0) {
+        if (data.choices && data.choices[0]) {
             const reply = data.choices[0].message.content;
-            addMessage(reply, 'ai', true);
+            addMessage(reply, 'ai', autoSpeak);
             messages.push({role: 'assistant', content: reply});
         } else if (data.error) {
-            addMessage('主人，API返回错误：' + JSON.stringify(data.error), 'system');
-        } else {
-            addMessage('主人，API返回格式不对，请检查配置', 'system');
+            addMessage('错误：' + (data.error.message || JSON.stringify(data.error)), 'system');
         }
     } catch (e) {
         removeTyping();
-        addMessage('主人，出错了：' + e.message, 'system');
+        addMessage('出错了：' + e.message, 'system');
     }
 
     sendBtn.disabled = false;
     userInput.focus();
 }
 
-// 回车发送
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
-
-// 页面加载时获取语音列表
-if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = () => {
-        // 语音列表已加载
-    };
-}
 </script>
 </body>
 </html>
