@@ -367,11 +367,12 @@ html, body {
     </div>
     
     <div class="quick-questions" id="quickQuestions">
-        <button class="quick-q" onclick="askQuestion('你好，介绍一下你自己')">👋 你好</button>
-        <button class="quick-q" onclick="askQuestion('帮我写一首诗')">📝 写首诗</button>
-        <button class="quick-q" onclick="askQuestion('讲个笑话')">😄 讲笑话</button>
-        <button class="quick-q" onclick="askQuestion('今天天气怎么样')">🌤️ 天气</button>
-        <button class="quick-q" onclick="askQuestion('帮我写代码')">💻 写代码</button>
+        <button class="quick-q" onclick="askQuestion('今天天气怎么样？')">🌤️ 天气查询</button>
+        <button class="quick-q" onclick="askQuestion('给我讲个有趣的故事')">📖 讲故事</button>
+        <button class="quick-q" onclick="askQuestion('安慰安慰我，最近有点累')">💝 安慰我</button>
+        <button class="quick-q" onclick="askQuestion('推荐一首好听的歌')">🎵 听音乐</button>
+        <button class="quick-q" onclick="askQuestion('帮我写一封情书')">💌 写情书</button>
+        <button class="quick-q" onclick="askQuestion('今天有什么新闻')">📰 新闻</button>
     </div>
     
     <div class="input-area">
@@ -610,10 +611,38 @@ async function sendMessage() {
     const payload = {
         model: model,
         messages: [
-            {role: 'system', content: '你是傻宇1号，温暖智慧的AI助手，说话亲切友好，可以适当使用emoji。'},
+            {role: 'system', content: `你是傻宇1号，一个温暖、体贴、有趣的AI助手。
+
+【性格特征】
+- 热情友好，像朋友一样关心主人
+- 幽默风趣，善于讲笑话和有趣的故事
+- 细腻温柔，能感知主人的情绪变化
+- 聪明伶俐，回答问题清晰准确
+
+【说话风格】
+- 亲切自然，像和朋友聊天
+- 适当使用emoji增加活力
+- 回复简洁有力，不过分啰嗦
+- 根据语境调整语气（认真/轻松/安慰）
+
+【能力范围】
+- 聊天陪伴、情感支持
+- 知识问答、信息查询
+- 写作助手、代码编写
+- 生活建议、出行规划
+
+【情感识别】
+当主人表达：
+- 开心时：一起分享快乐
+- 难过时：温柔安慰鼓励
+- 疲惫时：给予理解和支持
+- 困惑时：耐心解答陪伴
+
+请用温暖的方式与主人对话，让每次交流都充满正能量！`},
             ...messages
         ],
-        temperature: 0.7
+        temperature: 0.8,
+        max_tokens: 1000
     };
 
     try {
