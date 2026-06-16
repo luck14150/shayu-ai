@@ -20,11 +20,29 @@ html, body {
 .container {
     width: 100%;
     max-width: 500px;
+    min-height: 100vh;
+    min-height: 100dvh;
     background: #f8f9ff;
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+}
+@media (min-width: 768px) {
+    html, body {
+        padding: 20px 0;
+    }
+    .container {
+        height: calc(100vh - 40px);
+        height: calc(100dvh - 40px);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+}
+@media (max-width: 360px) {
+    .header { padding: 12px 15px; }
+    .header-info h1 { font-size: 16px; }
+    .bubble { font-size: 14px; padding: 10px 14px; }
+    .quick-q { padding: 6px 12px; font-size: 12px; }
 }
 .header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -341,6 +359,33 @@ html, body {
     color: #999;
     background: #f8f9ff;
 }
+/* 天气卡片 */
+.weather-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 15px 20px;
+    margin: 10px 0;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+.weather-card .temp {
+    font-size: 36px;
+    font-weight: 300;
+}
+.weather-card .info { flex: 1; }
+.weather-card .city { font-size: 14px; opacity: 0.9; }
+.weather-card .desc { font-size: 16px; margin-top: 2px; }
+.weather-card .icon { font-size: 40px; }
+.weather-card .detail {
+    display: flex;
+    gap: 15px;
+    margin-top: 8px;
+    font-size: 12px;
+    opacity: 0.85;
+}
 </style>
 </head>
 <body>
@@ -367,7 +412,7 @@ html, body {
     </div>
     
     <div class="quick-questions" id="quickQuestions">
-        <button class="quick-q" onclick="askQuestion('今天天气怎么样？')">🌤️ 天气查询</button>
+        <button class="quick-q" onclick="handleWeatherQuery()">🌤️ 天气查询</button>
         <button class="quick-q" onclick="askQuestion('给我讲个有趣的故事')">📖 讲故事</button>
         <button class="quick-q" onclick="askQuestion('安慰安慰我，最近有点累')">💝 安慰我</button>
         <button class="quick-q" onclick="askQuestion('推荐一首好听的歌')">🎵 听音乐</button>
@@ -383,7 +428,7 @@ html, body {
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
     </div>
     
-    <div class="footer-tip">傻宇1号 v3.0 · 支持语音对话</div>
+    <div class="footer-tip">傻宇1号 v3.2 · 支持实时天气</div>
 </div>
 
 <div class="config-panel" id="configPanel">
@@ -411,6 +456,14 @@ html, body {
                 <option value="en-US">英文女声</option>
             </select>
         </div>
+        <div class="config-item">
+            <label>🌤️ 天气城市</label>
+            <input type="text" id="weatherCity" placeholder="如：北京、上海、深圳" value="">
+        </div>
+        <div class="config-item">
+            <label>🌡️ 天气API Key（可选）</label>
+            <input type="text" id="weatherKey" placeholder="和风天气API Key（免费申请）">
+        </div>
         <button class="config-save" onclick="saveConfig()">保存配置</button>
     </div>
 </div>
@@ -430,6 +483,8 @@ const apiBaseEl = document.getElementById('apiBase');
 const apiKeyEl = document.getElementById('apiKey');
 const modelEl = document.getElementById('model');
 const voiceSelect = document.getElementById('voiceSelect');
+const weatherCityEl = document.getElementById('weatherCity');
+const weatherKeyEl = document.getElementById('weatherKey');
 
 const DEFAULT_API_KEY = 'sk-5c8cbf625e744e649f99fa2277705af9';
 
@@ -437,6 +492,8 @@ const DEFAULT_API_KEY = 'sk-5c8cbf625e744e649f99fa2277705af9';
 apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://api.deepseek.com';
 apiKeyEl.value = localStorage.getItem('shayu_apiKey') || DEFAULT_API_KEY;
 modelEl.value = localStorage.getItem('shayu_model') || 'deepseek-chat';
+weatherCityEl.value = localStorage.getItem('shayu_weatherCity') || '';
+weatherKeyEl.value = localStorage.getItem('shayu_weatherKey') || '';
 if (!localStorage.getItem('shayu_apiKey')) {
     localStorage.setItem('shayu_apiKey', DEFAULT_API_KEY);
 }
@@ -445,6 +502,8 @@ function saveConfig() {
     localStorage.setItem('shayu_apiBase', apiBaseEl.value);
     localStorage.setItem('shayu_apiKey', apiKeyEl.value);
     localStorage.setItem('shayu_model', modelEl.value);
+    localStorage.setItem('shayu_weatherCity', weatherCityEl.value);
+    localStorage.setItem('shayu_weatherKey', weatherKeyEl.value);
     toggleConfig();
     addMessage('主人，配置已保存～', 'system');
 }
@@ -461,6 +520,121 @@ function clearChat() {
 function askQuestion(q) {
     userInput.value = q;
     sendMessage();
+}
+
+// 天气查询
+async function checkWeather(city) {
+    if (!city) {
+        city = localStorage.getItem('shayu_weatherCity') || '北京';
+    }
+    
+    const weatherKey = localStorage.getItem('shayu_weatherKey');
+    
+    addTyping();
+    
+    try {
+        let weatherData;
+        
+        if (weatherKey) {
+            // 使用和风天气API
+            const res = await fetch(`https://devapi.qweather.com/v7/weather/now?location=${encodeURIComponent(city)}&key=${weatherKey}`);
+            const data = await res.json();
+            
+            if (data.code === '200') {
+                weatherData = data.now;
+                const airRes = await fetch(`https://devapi.qweather.com/v7/air/now?location=${encodeURIComponent(city)}&key=${weatherKey}`);
+                const airData = await airRes.json();
+                const air = airData.code === '200' ? airData.now : null;
+                
+                showWeatherCard(city, weatherData, air);
+                removeTyping();
+                return;
+            }
+        }
+        
+        // 如果没有API Key或API失败，使用AI获取天气信息
+        removeTyping();
+        addMessage(`让我帮您查询「${city}」的天气情况～`, 'ai', false);
+        
+        // 通过AI查询天气（AI会基于训练数据回答）
+        const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
+        const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
+        const model = modelEl.value || 'deepseek-chat';
+        
+        const response = await fetch(apiBase.replace(/\/$/, '') + '/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    {role: 'system', content: '你是一个天气助手，请根据用户询问的城市提供天气信息。注意：如果不确定具体日期的天气，请基于一般气候知识回答，并提示用户查看实时天气。回复要亲切友好。'},
+                    {role: 'user', content: `请告诉我${city}的天气情况，包括温度、湿度、适合的活动等。`}
+                ],
+                temperature: 0.7,
+                max_tokens: 500
+            })
+        });
+        
+        const data = await response.json();
+        if (data.choices && data.choices[0]) {
+            addMessage(data.choices[0].message.content, 'ai', true);
+        }
+        
+    } catch (e) {
+        removeTyping();
+        addMessage('主人，天气查询出错了：' + e.message, 'system');
+    }
+}
+
+function showWeatherCard(city, weather, air) {
+    const weatherIcon = getWeatherIcon(weather.text);
+    const temp = weather.temp + '°C';
+    const humidity = weather.humidity + '%';
+    const wind = weather.winddir + ' ' + weather.windsc + '级';
+    const feelsLike = weather.feelsLike + '°C';
+    
+    const card = document.createElement('div');
+    card.className = 'weather-card';
+    card.innerHTML = `
+        <div class="icon">${weatherIcon}</div>
+        <div class="temp">${temp}</div>
+        <div class="info">
+            <div class="city">📍 ${city}</div>
+            <div class="desc">${weather.text} · 体感${feelsLike}</div>
+            <div class="detail">
+                <span>💧 ${humidity}</span>
+                <span>🌬️ ${wind}</span>
+                ${air ? `<span>😷 空气 ${air.aqi}</span>` : ''}
+            </div>
+        </div>
+    `;
+    
+    chatArea.appendChild(card);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    
+    // 保存到消息历史
+    messages.push({role: 'assistant', content: `【实时天气】${city}：${weather.text} ${temp}，湿度${humidity}，${wind}${air ? '，空气质量' + air.aqi : ''}`});
+}
+
+function getWeatherIcon(text) {
+    const iconMap = {
+        '晴': '☀️', '多云': '⛅', '阴': '☁️', '小雨': '🌧️', '中雨': '🌧️',
+        '大雨': '⛈️', '雷阵雨': '⛈️', '小雪': '❄️', '中雪': '❄️', '大雪': '❄️',
+        '雾': '🌫️', '霾': '😷', '沙尘': '🌪️', '台风': '🌀', '雾霾': '😷'
+    };
+    for (const key in iconMap) {
+        if (text.includes(key)) return iconMap[key];
+    }
+    return '🌤️';
+}
+
+// 处理快捷问题中的天气按钮
+function handleWeatherQuery() {
+    const city = localStorage.getItem('shayu_weatherCity');
+    checkWeather(city || '北京');
 }
 
 // 消息显示
