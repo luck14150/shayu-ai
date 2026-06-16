@@ -85,25 +85,12 @@ html, body {
     0%, 100% { box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
     50% { box-shadow: 0 4px 25px rgba(239, 68, 68, 0.8); }
 }
-/* 窗口大小控制 - 通过缩放字体和内边距实现 */
-.window-small { font-size: 13px; }
-.window-small .bubble { padding: 8px 12px; font-size: 13px; }
-.window-small .header { padding: 10px 12px; }
-.window-small .input-area { padding: 8px 10px; }
-.window-small .quick-questions { padding: 6px 8px; }
-.window-small .quick-q { padding: 6px 12px; font-size: 12px; }
+/* 窗口大小控制 - 通过调整容器宽度实现 */
+.container.window-small { max-width: 280px !important; }
+.container.window-medium { max-width: 350px !important; }
+.container.window-normal { max-width: 100%; }
+.container.window-large { max-width: 100%; }
 
-.window-medium { font-size: 14px; }
-.window-medium .bubble { padding: 10px 14px; font-size: 14px; }
-
-.window-normal { font-size: 15px; }
-.window-normal .bubble { padding: 12px 16px; font-size: 15px; }
-
-.window-large { font-size: 17px; }
-.window-large .bubble { padding: 14px 18px; font-size: 17px; }
-.window-large .header { padding: 14px 18px; }
-.window-large .input-area { padding: 12px 14px; }
-.window-large .quick-q { padding: 10px 18px; font-size: 15px; }
 @media (min-width: 768px) {
     .container {
         max-width: 500px;
@@ -112,6 +99,9 @@ html, body {
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     }
+    .container.window-small { max-width: 320px !important; }
+    .container.window-medium { max-width: 420px !important; }
+    .container.window-large { max-width: 550px !important; }
     .resize-controls { right: calc(50% - 250px + 15px); }
     .voice-control { left: calc(50% - 250px + 15px); }
 }
@@ -517,7 +507,7 @@ html, body {
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
     </div>
     
-    <div class="footer-tip">傻宇1号 v3.4 · 手机端优化</div>
+    <div class="footer-tip">傻宇1号 v3.5 · 修复语音错误</div>
 </div>
 
 <!-- 窗口大小调节按钮 -->
@@ -791,6 +781,11 @@ let globalAudioQueue = [];
 function toggleGlobalAudio() {
     const btn = document.getElementById('globalVoiceBtn');
     
+    if (!speechSynthesis) {
+        addMessage('抱歉，您的浏览器不支持语音播放功能～', 'system');
+        return;
+    }
+    
     if (speechSynthesis.speaking) {
         // 正在播放，停止
         stopSpeech();
@@ -877,6 +872,10 @@ function removeTyping() {
 
 // 语音合成（TTS）
 function speakText(text) {
+    if (!speechSynthesis) {
+        return;
+    }
+    
     if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
     }
@@ -896,7 +895,9 @@ function speakText(text) {
 }
 
 function stopSpeech() {
-    speechSynthesis.cancel();
+    if (speechSynthesis) {
+        speechSynthesis.cancel();
+    }
     const soundWaves = document.querySelectorAll('.sound-wave');
     soundWaves.forEach(sw => sw.classList.remove('active'));
     // 同步全局按钮状态
