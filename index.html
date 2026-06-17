@@ -436,9 +436,9 @@ const weatherCityEl = document.getElementById('weatherCity');
 const DEFAULT_API_KEY = 'sk-5c8cbf625e744e649f99fa2277705af9';
 
 // 初始化
-apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://api.deepseek.com';
-apiKeyEl.value = localStorage.getItem('shayu_apiKey') || DEFAULT_API_KEY;
-modelEl.value = localStorage.getItem('shayu_model') || 'deepseek-chat';
+apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://apihub.agnes-ai.com/v1';
+apiKeyEl.value = localStorage.getItem('shayu_apiKey') || 'sk-tIQbtS4899pY8zv4mtL7iAf5nBLpD6NY5AWVv8ho4vADZxZb';
+modelEl.value = localStorage.getItem('shayu_model') || 'agnes-2.0-flash';
 weatherCityEl.value = localStorage.getItem('shayu_weatherCity') || '';
 autoSpeak = localStorage.getItem('shayu_autoSpeak') !== 'false';
 totalTokensUsed = parseInt(localStorage.getItem('shayu_totalTokens') || '0');
@@ -499,9 +499,9 @@ async function handleWeatherQuery() {
     const city = weatherCityEl.value || '北京';
     addMessage(`正在查询${city}天气...`, 'system');
     
-    const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
-    const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
-    const model = modelEl.value || 'deepseek-chat';
+    const apiBase = apiBaseEl.value || 'https://apihub.agnes-ai.com/v1';
+    const apiKey = apiKeyEl.value || 'sk-tIQbtS4899pY8zv4mtL7iAf5nBLpD6NY5AWVv8ho4vADZxZb';
+    const model = modelEl.value || 'agnes-2.0-flash';
     
     try {
         const response = await fetch(apiBase.replace(/\/$/, '') + '/chat/completions', {
@@ -634,9 +634,9 @@ async function sendMessage() {
     sendBtn.disabled = true;
     addTyping();
 
-    const apiBase = apiBaseEl.value || 'https://api.deepseek.com';
-    const apiKey = apiKeyEl.value || DEFAULT_API_KEY;
-    const model = modelEl.value || 'deepseek-chat';
+    const apiBase = apiBaseEl.value || 'https://apihub.agnes-ai.com/v1';
+    const apiKey = apiKeyEl.value || 'sk-tIQbtS4899pY8zv4mtL7iAf5nBLpD6NY5AWVv8ho4vADZxZb';
+    const model = modelEl.value || 'agnes-2.0-flash';
 
     try {
         const response = await fetch(apiBase.replace(/\/$/, '') + '/chat/completions', {
