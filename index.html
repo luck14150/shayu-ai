@@ -317,6 +317,17 @@ body {
     cursor: pointer;
     margin-top: 8px;
 }
+.config-reset {
+    width: 100%;
+    padding: 10px;
+    background: #f0f4ff;
+    color: #667eea;
+    border: 1px solid #dde2f1;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 6px;
+}
 /* 天气卡片 */
 .weather-card {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -412,6 +423,7 @@ body {
             <input type="text" id="weatherCity" placeholder="如：北京">
         </div>
         <button class="config-save" onclick="saveConfig()">保存</button>
+        <button class="config-reset" onclick="resetToDefault()">恢复默认配置</button>
     </div>
 </div>
 
@@ -434,15 +446,30 @@ const modelEl = document.getElementById('model');
 const weatherCityEl = document.getElementById('weatherCity');
 
 const DEFAULT_API_KEY = 'sk-5c8cbf625e744e649f99fa2277705af9';
+const CURRENT_VERSION = 'v4.1';
 
 // 初始化
-apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://apihub.agnes-ai.com/v1';
-apiKeyEl.value = localStorage.getItem('shayu_apiKey') || 'sk-tIQbtS4899pY8zv4mtL7iAf5nBLpD6NY5AWVv8ho4vADZxZb';
-modelEl.value = localStorage.getItem('shayu_model') || 'agnes-2.0-flash';
-weatherCityEl.value = localStorage.getItem('shayu_weatherCity') || '';
-autoSpeak = localStorage.getItem('shayu_autoSpeak') !== 'false';
-totalTokensUsed = parseInt(localStorage.getItem('shayu_totalTokens') || '0');
-document.getElementById('totalTokens').textContent = totalTokensUsed;
+function initConfig() {
+    const savedVersion = localStorage.getItem('shayu_version');
+    
+    // 如果版本更新，清除旧配置，使用新默认值
+    if (savedVersion !== CURRENT_VERSION) {
+        localStorage.removeItem('shayu_apiBase');
+        localStorage.removeItem('shayu_apiKey');
+        localStorage.removeItem('shayu_model');
+        localStorage.setItem('shayu_version', CURRENT_VERSION);
+    }
+    
+    apiBaseEl.value = localStorage.getItem('shayu_apiBase') || 'https://apihub.agnes-ai.com/v1';
+    apiKeyEl.value = localStorage.getItem('shayu_apiKey') || 'sk-tIQbtS4899pY8zv4mtL7iAf5nBLpD6NY5AWVv8ho4vADZxZb';
+    modelEl.value = localStorage.getItem('shayu_model') || 'agnes-2.0-flash';
+    weatherCityEl.value = localStorage.getItem('shayu_weatherCity') || '';
+    autoSpeak = localStorage.getItem('shayu_autoSpeak') !== 'false';
+    totalTokensUsed = parseInt(localStorage.getItem('shayu_totalTokens') || '0');
+    document.getElementById('totalTokens').textContent = totalTokensUsed;
+}
+
+initConfig();
 
 function updateTokenDisplay(prompt, completion, total, msgCount) {
     document.getElementById('promptTokens').textContent = prompt;
@@ -459,6 +486,22 @@ function resetTokenCount() {
     document.getElementById('totalTokens').textContent = '0';
     document.getElementById('msgCount').textContent = messages.length;
     addMessage('Token统计已清零～', 'system');
+}
+
+function resetToDefault() {
+    if (confirm('确定要恢复默认配置吗？这会清除您保存的API配置。')) {
+        localStorage.removeItem('shayu_apiBase');
+        localStorage.removeItem('shayu_apiKey');
+        localStorage.removeItem('shayu_model');
+        localStorage.removeItem('shayu_version');
+        
+        apiBaseEl.value = 'https://apihub.agnes-ai.com/v1';
+        apiKeyEl.value = 'sk-tIQbtS4899pY8zv4mtL7iAf5nBLpD6NY5AWVv8ho4vADZxZb';
+        modelEl.value = 'agnes-2.0-flash';
+        
+        toggleConfig();
+        addMessage('已恢复默认配置～', 'system');
+    }
 }
 
 function saveConfig() {
